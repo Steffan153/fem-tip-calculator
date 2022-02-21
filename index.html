@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en" class="text-[14px]">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- displays site properly based on user's device -->
+
+    <link rel="icon" type="image/png" sizes="32x32" href="./images/favicon-32x32.png" />
+    <link rel="stylesheet" href="build.css" />
+    <link href="https://fonts.googleapis.com/css?family=Space+Mono:400,500,700" rel="stylesheet" />
+    <script src="https://unpkg.com/vue@3"></script>
+
+    <title>Frontend Mentor | Tip calculator app</title>
+  </head>
+  <body class="bg-[#c5e4e7] font-['Space_Mono']">
+    <div class="h-screen w-screen flex flex-col justify-between md:justify-evenly items-center" id="app">
+      <img src="./images/logo.svg" alt="logo" class="w-20 mt-12 md:mt-0 md:-mb-20" />
+      <div class="calculator bg-white rounded-[1.5rem] p-7 flex flex-col md:flex-row justify-between items-center bg-white w-full md:w-[calc(9/14*100%)] gap-[1.6rem] md:mb-12">
+        <div class="form md:h-full w-full md:w-[calc(50%-0.8rem)] flex flex-col justify-between p-3">
+          <div class="bill">
+            <div class="mb-2 flex justify-between w-full">
+              <label for="bill-input" class="text-[#5e7a7d] font-bold">Bill</label>
+              <div class="text-[#e17457] font-bold" v-if="billZero">Can't be zero</div>
+              <div class="text-[#e17457] font-bold" v-if="billEmpty">Can't be empty</div>
+            </div>
+            <div class="relative mb-24">
+              <input
+                type="number"
+                id="bill-input"
+                placeholder=""
+                :class="['bg-[#f4fafa] rounded absolute font-bold text-[#00494d] text-right pr-4 pl-11 py-2 outline-2 caret-[#26c0ab] text-xl w-full', billZero || billEmpty ? 'outline outline-[#e17457]' : 'outline-[#26c0ab]']"
+                v-model="bill"
+                @blur="validateBill()"
+              />
+              <img src="images/icon-dollar.svg" class="h-[1.11rem] left-[1.11rem] absolute top-3" />
+            </div>
+          </div>
+          <div class="select-tip mb-12">
+            <div class="mb-4"><label class="text-[#5e7a7d] font-bold">Select Tip %</label></div>
+            <div class="tip-options grid grid-cols-3 gap-4 font-bold text-2xl">
+              <div
+                :class="['tip rounded text-center py-2 cursor-pointer hover:bg-[#9FE8DF] hover:text-[#00494d] transition duration-300', tipAmount == 5 ? 'bg-[#26c0ab] text-[#00494d]' : 'bg-[#00494d] text-white']"
+                @click="tipAmount = 5"
+              >
+                5%
+              </div>
+              <div
+                :class="['tip rounded text-center py-2 cursor-pointer hover:bg-[#9FE8DF] hover:text-[#00494d] transition duration-300', tipAmount == 10 ? 'bg-[#26c0ab] text-[#00494d]' : 'bg-[#00494d] text-white']"
+                @click="tipAmount = 10"
+              >
+                10%
+              </div>
+              <div
+                :class="['tip rounded text-center py-2 cursor-pointer hover:bg-[#9FE8DF] hover:text-[#00494d] transition duration-300', tipAmount == 15 ? 'bg-[#26c0ab] text-[#00494d]' : 'bg-[#00494d] text-white']"
+                @click="tipAmount = 15"
+              >
+                15%
+              </div>
+              <div
+                :class="['tip rounded text-center py-2 cursor-pointer hover:bg-[#9FE8DF] hover:text-[#00494d] transition duration-300', tipAmount == 25 ? 'bg-[#26c0ab] text-[#00494d]' : 'bg-[#00494d] text-white']"
+                @click="tipAmount = 25"
+              >
+                25%
+              </div>
+              <div
+                :class="['tip rounded text-center py-2 cursor-pointer hover:bg-[#9FE8DF] hover:text-[#00494d] transition duration-300', tipAmount == 50 ? 'bg-[#26c0ab] text-[#00494d]' : 'bg-[#00494d] text-white']"
+                @click="tipAmount = 50"
+              >
+                50%
+              </div>
+              <input
+                type="number"
+                class="custom-tip text-right outline-[#26c0ab] caret-[#26c0ab] font-bold text-[#00494d] bg-[#f4fafa] rounded placeholder:text-center placeholder:text-[#5e7a7d] placeholder:font-bold px-3"
+                placeholder="Custom"
+                v-model="customTip"
+                @click="isCustomTip = true"
+              />
+            </div>
+          </div>
+          <div class="num-people">
+            <div class="mb-2 w-full flex justify-between">
+              <label for="bill-input" class="text-[#5e7a7d] font-bold">Number of People</label>
+              <div class="text-[#e17457] font-bold" v-if="numPeopleZero">Can't be zero</div>
+              <div class="text-[#e17457] font-bold" v-if="numPeopleEmpty">Can't be empty</div>
+            </div>
+            <div class="relative mb-12">
+              <input
+                type="number"
+                id="bill-input"
+                placeholder=""
+                :class="['bg-[#f4fafa] rounded absolute font-bold text-[#00494d] outline-2 text-right pr-4 pl-11 py-2 caret-[#26c0ab] text-xl w-full', numPeopleZero || numPeopleEmpty ? 'outline outline-[#e17457]' : 'outline-[#26c0ab]']"
+                v-model="numPeople"
+                @blur="validateNumPeople()"
+              />
+              <img src="images/icon-person.svg" class="h-[1.11rem] left-[1.11rem] absolute top-3" />
+            </div>
+          </div>
+        </div>
+        <div class="results md:h-full w-full md:w-[calc(50%-0.8rem)] flex flex-col justify-between bg-[#00494d] rounded-[1.11rem] text-white p-10 pt-14">
+          <div class="flex flex-col gap-[2.8rem] font-bold">
+            <div class="flex justify-between items-center">
+              <div class="flex flex-col text-[0.9rem]">
+                <div>Tip Amount</div>
+                <div class="text-[#7f9c9f]">/ person</div>
+              </div>
+              <div class="text-5xl text-[#26c0ab]">${{ tipPerPerson }}</div>
+            </div>
+            <div class="flex justify-between items-center">
+              <div class="flex flex-col text-[0.9rem]">
+                <div>Total</div>
+                <div class="text-[#7f9c9f]">/ person</div>
+              </div>
+              <div class="text-5xl text-[#26c0ab]">${{ totalPerPerson }}</div>
+            </div>
+          </div>
+          <div class="mt-[2.8rem] md:mt-0">
+            <button
+              class="bg-[#26c0ab] text-[#00494d] w-full py-3 rounded-[0.4rem] font-bold text-xl cursor-pointer hover:bg-[#9FE8DF] transition duration-200 disabled:cursor-default disabled:hover:bg-[#0E686D] disabled:bg-[#0E686D]"
+              :disabled="numPeople == '0' && bill == '0'"
+              @click="bill = numPeople = '0'"
+            >
+              RESET
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bill
+
+  Select Tip %
+  5%
+  10%
+  15%
+  25%
+  50%
+  Custom
+
+  Number of People
+
+  Tip Amount
+  / person
+
+  Total
+  / person
+
+  Reset -->
+    <script>
+      function fallback(a, b) {
+        return isNaN(a) || !isFinite(a) ? b : a;
+      }
+      Vue.createApp({
+        data() {
+          return {
+            tipAmount: null,
+            customTip: "",
+            isCustomTip: false,
+            numPeople: "0",
+            bill: "0",
+            numPeopleZero: false,
+            numPeopleEmpty: false,
+            billZero: false,
+            billEmpty: false,
+          };
+        },
+        watch: {
+          isCustomTip(val) {
+            if (val) {
+              this.tipAmount = null;
+            }
+          },
+          tipAmount(val) {
+            if (val) {
+              this.isCustomTip = false;
+            }
+          },
+          numPeople(val) {
+            if (val.toString().includes("-")) {
+              this.numPeople = val.toString().replace("-", "");
+            } else if (val.toString().includes(".")) {
+              this.numPeople = val.toString().replace(".", "");
+            }
+            if (this.numPeople && +this.numPeople) {
+              this.numPeopleZero = false;
+              this.numPeopleEmpty = false;
+            }
+          },
+          bill(val) {
+            if (val.toString().includes("-")) {
+              this.bill = val.toString().replace("-", "");
+            } else if (val.toString().includes(".")) {
+              this.bill = val.toString().replace(".", "");
+            }
+            if (this.bill && +this.bill) {
+              this.billZero = false;
+              this.billEmpty = false;
+            }
+          },
+        },
+        methods: {
+          validateNumPeople() {
+            if (this.numPeople === "" || this.numPeople == null) {
+              this.numPeopleEmpty = true;
+              this.numPeopleZero = false;
+            } else {
+              this.numPeopleEmpty = false;
+              if (!this.numPeople || !+this.numPeople) {
+                this.numPeopleZero = true;
+              } else {
+                this.numPeopleZero = false;
+              }
+            }
+          },
+          validateBill() {
+            if (this.bill === "" || this.bill == null) {
+              this.billEmpty = true;
+              this.billZero = false;
+            } else {
+              this.billEmpty = false;
+              if (!this.bill || !+this.bill) {
+                this.billZero = true;
+              } else {
+                this.billZero = false;
+              }
+            }
+          },
+        },
+        computed: {
+          tipPercent() {
+            if (this.tipAmount) {
+              return this.tipAmount;
+            } else if (this.customTip) {
+              return this.customTip;
+            }
+          },
+          tipPerPerson() {
+            return fallback((this.bill * +this.tipPercent) / 100 / this.numPeople, 0).toFixed(2);
+          },
+          totalPerPerson() {
+            return fallback(+this.tipPerPerson + this.bill / this.numPeople, 0).toFixed(2);
+          },
+        },
+      }).mount("#app");
+    </script>
+  </body>
+</html>
